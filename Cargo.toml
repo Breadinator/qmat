@@ -7,10 +7,10 @@ edition = "2021"
 repository = "https://github.com/Breadinator/qmat/"
 homepage = "https://github.com/Breadinator/qmat/"
 license = "Unlicense"
-license-file = "LICENSE"
+#license-file = "LICENSE"
 readme = "README.md"
 categories = ["data-structures", "mathematics", "science"]
-keywords = []
+#keywords = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
