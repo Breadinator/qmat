@@ -1,0 +1,17 @@
+[package]
+name = "qmat"
+authors = ["br3adina7or"]
+description = "A simple library for 2-dimensional matrices."
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/Breadinator/qmat/"
+homepage = "https://github.com/Breadinator/qmat/"
+license = "Unlicense"
+license-file = "LICENSE"
+readme = "README.md"
+categories = ["data-structures", "mathematics", "science"]
+keywords = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
