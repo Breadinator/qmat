@@ -8,7 +8,7 @@ mod matrix {
         assert_eq!(mat[[1, 0]], 2);
         assert_eq!(mat[[1, 1]], 3);
     }
-    
+
     #[test]
     fn basic_4x7() {
         let mut data = [0; 28];
@@ -16,7 +16,7 @@ mod matrix {
         for i in 0..28 {
             data[i] = i;
         }
-    
+
         let mat = qmat::matrix!(4, 7, data);
         for (i, val) in mat.as_flat_array().iter().enumerate() {
             assert_eq!(i, *val);
@@ -67,14 +67,14 @@ mod identity {
     test_identities_up_to_10!(i64, 1, 0);
     test_identities_up_to_10!(i128, 1, 0);
     test_identities_up_to_10!(isize, 1, 0);
-    
+
     test_identities_up_to_10!(u8, 1, 0);
     test_identities_up_to_10!(u16, 1, 0);
     test_identities_up_to_10!(u32, 1, 0);
     test_identities_up_to_10!(u64, 1, 0);
     test_identities_up_to_10!(u128, 1, 0);
     test_identities_up_to_10!(usize, 1, 0);
-    
+
     test_identities_up_to_10!(f32, 1.0, 0.0);
     test_identities_up_to_10!(f64, 1.0, 0.0);
 }

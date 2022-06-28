@@ -1,5 +1,5 @@
-use rand::Rng;
 use qmat::{identities::Identity, mat::Matrix};
+use rand::Rng;
 
 #[cfg(test)]
 mod matricies {

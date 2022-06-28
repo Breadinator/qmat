@@ -1,3 +1,5 @@
+#![warn(clippy::all, clippy::pedantic)]
+
 #[derive(Debug)]
 pub enum NewMatrixError {
     /// If the given arguments aren't internally consistent (i.e. if `rows*cols!=data.len()`)

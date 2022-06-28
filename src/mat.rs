@@ -1,6 +1,9 @@
 #![warn(clippy::all, clippy::pedantic)]
 
-use std::{ops::{Add, Index, Sub, Mul, IndexMut}, iter::Sum};
+use std::{
+    iter::Sum,
+    ops::{Add, Index, IndexMut, Mul, Sub},
+};
 
 use crate::math::arr_dot;
 
@@ -10,15 +13,15 @@ use super::errors::NewMatrixError;
 /// `LEN` is the length of the internal array `data: [T; LEN]` that stores all the elements (i.e. `LEN` = `M` * `N`).
 #[derive(Debug, Clone, Copy)]
 pub struct Matrix<T, const M: usize, const N: usize, const LEN: usize> {
-    data: [T; LEN]
+    data: [T; LEN],
 }
 
 impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     /// Creates a new Matrix from given dimensions and flat data.
-    /// 
+    ///
     /// # Errors
     /// * `NewMatrixError::IllegalGenerics` if `M * N != LEN`
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
@@ -26,7 +29,7 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     /// assert!(mat.is_ok());
     /// ```
     pub fn new(data: [T; LEN]) -> Result<Self, NewMatrixError> {
-        if M*N != LEN {
+        if M * N != LEN {
             return Err(NewMatrixError::IllegalGenerics);
         }
         Ok(Matrix { data })
@@ -37,10 +40,10 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     }
 }
 
-impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
+impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     /// # Errors
     /// * `NewMatrixError::IllegalGenerics` if `M * N != LEN`
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
@@ -55,7 +58,7 @@ impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T
     ///  
     /// # Panics
     /// * When it fails to make an empty matrix.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
@@ -69,7 +72,7 @@ impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T
     pub fn get_row(&self, row: usize) -> Matrix<T, N, 1, N> {
         let mut output = Matrix::empty().unwrap();
         for i in 0..N {
-            output.data[i] = self.data[row*M+i];
+            output.data[i] = self.data[row * M + i];
         }
         output
     }
@@ -78,7 +81,7 @@ impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T
     ///  
     /// # Panics
     /// * When it fails to make an empty matrix.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
@@ -98,29 +101,43 @@ impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T
     }
 }
 
-impl<T: Default+Copy+Mul+Add+std::iter::Sum<<T as std::ops::Mul>::Output>+std::iter::Sum<<T as std::ops::Add>::Output>, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
-    /// Turbofish `::<O, Q, RES_LEN>` where 
-    /// * `O` is the number of columns in the other matrix, 
-    /// * `Q` is the array length in the other matrix, 
+impl<
+        T: Default
+            + Copy
+            + Mul
+            + Add
+            + std::iter::Sum<<T as std::ops::Mul>::Output>
+            + std::iter::Sum<<T as std::ops::Add>::Output>,
+        const M: usize,
+        const N: usize,
+        const LEN: usize,
+    > Matrix<T, M, N, LEN>
+{
+    /// Turbofish `::<O, Q, RES_LEN>` where
+    /// * `O` is the number of columns in the other matrix,
+    /// * `Q` is the array length in the other matrix,
     /// * `RES_LEN` is the number of elements in the resulting matrix (`M` * `O`) where `M` is rows in `self`
-    /// 
+    ///
     /// # Panics
     /// * When it fails to make an empty matrix.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
-    /// 
+    ///
     /// let a = Matrix::<_, 2, 2, 4>::new([3, 4, 2, 1]).unwrap();
     /// let b = Matrix::<_, 2, 2, 4>::new([1, 5, 3, 7]).unwrap();
     /// let output = a.multiply::<2, 4, 4>(&b);
-    /// 
+    ///
     /// assert_eq!(output[[0, 0]], 15);
     /// assert_eq!(output[[0, 1]], 43);
     /// assert_eq!(output[[1, 0]], 5);
     /// assert_eq!(output[[1, 1]], 17);
     /// ```
-    pub fn multiply<const O: usize, const Q: usize, const RES_LEN: usize>(self, other: &Matrix<T, N, O, Q>) -> Matrix<T, M, O, RES_LEN> {
+    pub fn multiply<const O: usize, const Q: usize, const RES_LEN: usize>(
+        self,
+        other: &Matrix<T, N, O, Q>,
+    ) -> Matrix<T, M, O, RES_LEN> {
         let mut out: Matrix<T, M, O, RES_LEN> = Matrix::empty().unwrap();
 
         for row in 0..N {
@@ -133,7 +150,9 @@ impl<T: Default+Copy+Mul+Add+std::iter::Sum<<T as std::ops::Mul>::Output>+std::i
     }
 }
 
-impl<T, const M: usize, const N: usize, const LEN: usize> Index<[usize; 2]> for Matrix<T, M, N, LEN> {
+impl<T, const M: usize, const N: usize, const LEN: usize> Index<[usize; 2]>
+    for Matrix<T, M, N, LEN>
+{
     type Output = T;
 
     /// # Examples
@@ -151,11 +170,13 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Index<[usize; 2]> for 
         // it should panic anyways, no need to add an extra check
         //assert!(pos[0] <= M);
         //assert!(pos[1] <= N);
-        &self.data[pos[0]*N + pos[1]]
+        &self.data[pos[0] * N + pos[1]]
     }
 }
 
-impl<T, const M: usize, const N: usize, const LEN: usize> IndexMut<[usize; 2]> for Matrix<T, M, N, LEN> {
+impl<T, const M: usize, const N: usize, const LEN: usize> IndexMut<[usize; 2]>
+    for Matrix<T, M, N, LEN>
+{
     /// # Examples
     /// ```
     /// use qmat::prelude::*;
@@ -167,21 +188,27 @@ impl<T, const M: usize, const N: usize, const LEN: usize> IndexMut<[usize; 2]> f
         // it should panic anyways, no need to add an extra check
         //assert!(pos[0] <= M);
         //assert!(pos[1] <= N);
-        &mut self.data[pos[0]*N + pos[1]]
+        &mut self.data[pos[0] * N + pos[1]]
     }
 }
 
-impl<T: Add+Add<Output = T>+Default+Copy, const M: usize, const N: usize, const LEN: usize> Add for Matrix<T, M, N, LEN> {
+impl<
+        T: Add + Add<Output = T> + Default + Copy,
+        const M: usize,
+        const N: usize,
+        const LEN: usize,
+    > Add for Matrix<T, M, N, LEN>
+{
     type Output = Self;
 
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
-    /// 
+    ///
     /// let lhs = Matrix::<i32, 2, 2, 4>::new([3, 17, 128, 5]).unwrap();
     /// let rhs = Matrix::<i32, 2, 2, 4>::new([63, 12, 4, 3]).unwrap();
     /// let added = lhs + rhs;
-    /// 
+    ///
     /// assert_eq!(added[[0, 0]], 66); // 3 + 63
     /// assert_eq!(added[[0, 1]], 29); // 17 + 12
     /// assert_eq!(added[[1, 0]], 132); // 128 + 4
@@ -191,21 +218,25 @@ impl<T: Add+Add<Output = T>+Default+Copy, const M: usize, const N: usize, const 
         let mut added = Self::empty().unwrap();
 
         for i in 0..LEN {
-            added.data[i] = self.data[i] + rhs.data[i]; 
+            added.data[i] = self.data[i] + rhs.data[i];
         }
 
         added
     }
 }
 
-impl<T: Add+Mul+Sum<<T as Add>::Output>+Copy+Default+Sum<<T as Mul>::Output>, const M: usize> Matrix<T, M, 1, M> {
+impl<
+        T: Add + Mul + Sum<<T as Add>::Output> + Copy + Default + Sum<<T as Mul>::Output>,
+        const M: usize,
+    > Matrix<T, M, 1, M>
+{
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
     ///
     /// let vec1 = Matrix::<i32, 3, 1, 3>::new([2, 4, 3]).unwrap();
     /// let vec2 = Matrix::<i32, 3, 1, 3>::new([1, 3, 3]).unwrap();
-    /// 
+    ///
     /// assert_eq!(vec1.dot(&vec2), 23);
     /// ```
     #[must_use]
@@ -215,17 +246,23 @@ impl<T: Add+Mul+Sum<<T as Add>::Output>+Copy+Default+Sum<<T as Mul>::Output>, co
     }
 }
 
-impl<T: Sub+Sub<Output = T>+Default+Copy, const M: usize, const N: usize, const LEN: usize> Sub for Matrix<T, M, N, LEN> {
+impl<
+        T: Sub + Sub<Output = T> + Default + Copy,
+        const M: usize,
+        const N: usize,
+        const LEN: usize,
+    > Sub for Matrix<T, M, N, LEN>
+{
     type Output = Self;
 
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
-    /// 
+    ///
     /// let lhs = Matrix::<i32, 2, 2, 4>::new([3, 17, 128, 5]).unwrap();
     /// let rhs = Matrix::<i32, 2, 2, 4>::new([63, 12, 4, 3]).unwrap();
     /// let subbed = lhs - rhs;
-    /// 
+    ///
     /// assert_eq!(subbed[[0, 0]], -60);  // 3 - 63
     /// assert_eq!(subbed[[0, 1]], 5);  // 17 - 12
     /// assert_eq!(subbed[[1, 0]], 124); // 128 - 4
@@ -234,25 +271,25 @@ impl<T: Sub+Sub<Output = T>+Default+Copy, const M: usize, const N: usize, const 
     fn sub(self, rhs: Self) -> Self::Output {
         let mut added = Self::empty().unwrap();
         for i in 0..LEN {
-            added.data[i] = self.data[i] - rhs.data[i]; 
+            added.data[i] = self.data[i] - rhs.data[i];
         }
         added
     }
 }
 
-impl<T: Default+Copy, const M: usize, const LEN: usize> Matrix<T, M, M, LEN> {
+impl<T: Default + Copy, const M: usize, const LEN: usize> Matrix<T, M, M, LEN> {
     /// Creates a new matrix such that every value in the diagonal from the top left (`[0, 0]`) to the bottom left (`[M, M]`) are equal to `val`.
-    /// 
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::Matrix;
-    /// 
+    ///
     /// let mat: Matrix<i32, 3, 3, 9> = Matrix::diag(3);
     /// assert_eq!(mat[[0, 0]], 3);
     /// assert_eq!(mat[[1, 1]], 3);
     /// assert_eq!(mat[[2, 2]], 3);
     /// ```
-    /// 
+    ///
     /// # Panics
     /// * If it fails to create an empty matrix.
     #[must_use]

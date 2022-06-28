@@ -1,3 +1,5 @@
+#![warn(clippy::all, clippy::pedantic)]
+
 use crate::mat::Matrix;
 
 /// Defines a value where `x * T::identity() == x`.
@@ -5,7 +7,9 @@ pub trait Identity {
     fn identity() -> Self;
 }
 
-impl<T: Default+Copy+Identity, const M: usize, const LEN: usize> Identity for Matrix<T, M, M, LEN> {
+impl<T: Default + Copy + Identity, const M: usize, const LEN: usize> Identity
+    for Matrix<T, M, M, LEN>
+{
     /// # Panics
     /// * If it fails to make an empty matrix
     #[must_use]

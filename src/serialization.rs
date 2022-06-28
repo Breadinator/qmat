@@ -1,28 +1,31 @@
+#![warn(clippy::all, clippy::pedantic)]
+
 /*
  * Deserialize isn't working
  */
 
 //use std::marker::PhantomData;
 //use serde::{Serialize, Deserialize, ser::SerializeStruct, Deserializer, de::{Visitor, SeqAccess}};
-use serde::{Serialize, ser::SerializeStruct};
+use serde::{ser::SerializeStruct, Serialize};
 
 use crate::mat::Matrix;
 
 impl<T, const M: usize, const N: usize, const LEN: usize> Serialize for Matrix<T, M, N, LEN>
 where
     T: Serialize,
-    [T; LEN]: serde::Serialize
+    [T; LEN]: serde::Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer {
-            let mut s = serializer.serialize_struct("Matrix", 3)?;
+        S: serde::Serializer,
+    {
+        let mut s = serializer.serialize_struct("Matrix", 3)?;
 
-            s.serialize_field("rows", &M)?;
-            s.serialize_field("cols", &N)?;
-            s.serialize_field("data", self.as_flat_array() as &[T])?;
+        s.serialize_field("rows", &M)?;
+        s.serialize_field("cols", &N)?;
+        s.serialize_field("data", self.as_flat_array() as &[T])?;
 
-            s.end()
+        s.end()
     }
 }
 
@@ -43,7 +46,7 @@ struct MatrixVisitor<T, const M: usize, const N: usize, const LEN: usize> {
     __boo: PhantomData<T>,
 }
 
-impl<'de, T: Deserialize<'de>+Default+Copy, const M: usize, const N: usize, const LEN: usize> Visitor<'de> for MatrixVisitor<T, M, N, LEN> 
+impl<'de, T: Deserialize<'de>+Default+Copy, const M: usize, const N: usize, const LEN: usize> Visitor<'de> for MatrixVisitor<T, M, N, LEN>
 where
     [T; LEN]: serde::Deserialize<'de>
 {
@@ -63,7 +66,7 @@ where
             .ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
         let data: [T; LEN] = seq.next_element()?
             .ok_or_else(|| serde::de::Error::invalid_length(1, &self))?;
-        
+
         assert!(rows==M);
         assert!(cols==N);
         assert!(data.len()==LEN);
@@ -93,7 +96,7 @@ where
 #[derive(Deserialize)]
 #[serde(field_identifier, rename_all="lowercase")]
 enum Field {
-    Rows, 
+    Rows,
     Cols,
     Data,
 }*/
