@@ -5,13 +5,15 @@ use std::{
     ops::{Add, Index, IndexMut, Mul, Sub},
 };
 
-use crate::math::arr_dot;
+use crate::{
+    errors::MatrixOperationError, identities::Identity, math::arr_dot, position::Position,
+};
 
 use super::errors::NewMatrixError;
 
 /// A matrix of `M` rows and `N` columns. <br/>
 /// `LEN` is the length of the internal array `data: [T; LEN]` that stores all the elements (i.e. `LEN` = `M` * `N`).
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Matrix<T, const M: usize, const N: usize, const LEN: usize> {
     data: [T; LEN],
 }
@@ -35,8 +37,28 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
         Ok(Matrix { data })
     }
 
+    #[must_use]
     pub fn as_flat_array(&self) -> &[T; LEN] {
         &self.data
+    }
+
+    #[must_use]
+    #[allow(clippy::unused_self)] // so you can call someMatrix.rows()
+    pub fn rows(&self) -> usize {
+        M
+    }
+
+    #[must_use]
+    #[allow(clippy::unused_self)] // so you can call someMatrix.cols()
+    pub fn cols(&self) -> usize {
+        N
+    }
+
+    /// The number of elements in the matrix (i.e. the number of rows times the number of cols)
+    #[must_use]
+    #[allow(clippy::unused_self)] // so you can call someMatrix.vol()
+    pub fn vol(&self) -> usize {
+        LEN
     }
 }
 
@@ -135,7 +157,7 @@ impl<
     /// assert_eq!(output[[1, 1]], 17);
     /// ```
     pub fn multiply<const O: usize, const Q: usize, const RES_LEN: usize>(
-        self,
+        &self,
         other: &Matrix<T, N, O, Q>,
     ) -> Matrix<T, M, O, RES_LEN> {
         let mut out: Matrix<T, M, O, RES_LEN> = Matrix::empty().unwrap();
@@ -147,6 +169,37 @@ impl<
         }
 
         out
+    }
+}
+
+impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN>
+where
+    T: Default + Copy + Mul<Output = T>,
+{
+    /// # Panics
+    /// * When it fails to make an empty matrix.
+    #[must_use]
+    pub fn mul_scalar(&self, scalar: T) -> Self {
+        let mut out = Matrix::empty().unwrap();
+        for i in 0..LEN {
+            out.data[i] = self.data[i] * scalar;
+        }
+        out
+    }
+}
+
+impl<T, const M: usize, const N: usize, const LEN: usize> Index<Position> for Matrix<T, M, N, LEN> {
+    type Output = T;
+    fn index(&self, pos: Position) -> &Self::Output {
+        &self.data[pos.0 * N + pos.1]
+    }
+}
+
+impl<T, const M: usize, const N: usize, const LEN: usize> IndexMut<Position>
+    for Matrix<T, M, N, LEN>
+{
+    fn index_mut(&mut self, pos: Position) -> &mut Self::Output {
+        &mut self.data[pos.0 * N + pos.1]
     }
 }
 
@@ -301,5 +354,113 @@ impl<T: Default + Copy, const M: usize, const LEN: usize> Matrix<T, M, M, LEN> {
         }
 
         mat
+    }
+}
+
+impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN>
+where
+    T: num_traits::Num + Copy,
+{
+    #[must_use]
+    pub fn det(&self) -> T {
+        let mat = self;
+        let mut mat = *mat; // hopefully dereferences a copy of self?
+        let mut temp = [T::zero(); N]; // temp array for row storage
+        let mut total: T = T::one();
+        let mut det: T = T::one(); // init res
+
+        // loop for traversing diagonal elems
+        for i in 0..N {
+            let mut index = i;
+
+            // finding non-zero value
+            while index < N && self[[index, i]] == T::zero() {
+                index += 1;
+            }
+
+            if index == N {
+                // there is non-zero elem
+                // det of matrix is 0
+                continue;
+            }
+            if index != i {
+                // loop for swapping the diagonal element row and index row
+                for j in 0..N {
+                    (mat[[index, j]], mat[[i, j]]) = (mat[[i, j]], mat[[index, j]]);
+                }
+
+                // det sign changes when row is shifted
+                let exp = index - i;
+                if exp % 2 == 1 {
+                    det = det * (T::zero() - T::one());
+                }
+            }
+
+            // storing diagonal row elems
+            for j in 0..N {
+                temp[j] = mat[[i, j]];
+            }
+
+            // traversing every col of row and mul to every row
+            for j in (i + 1)..N {
+                let num1 = temp[i]; // value of diagonal elem
+                let num2 = mat[[j, i]]; // value of next row elem
+
+                // traverse every column of row and mul to every row
+                for k in 0..N {
+                    // multiply to make the diagonal element and next row element equal
+                    mat[[j, k]] = (num1 * mat[[j, k]]) - (num2 * temp[k]);
+                }
+
+                total = total * num1; // Det(kA)=Det(A)
+            }
+        }
+
+        for i in 0..N {
+            det = det * mat[[i, i]];
+        }
+
+        det / total
+    }
+}
+
+impl<T, const M: usize, const LEN: usize> Matrix<T, M, M, LEN>
+where
+    T: num_traits::Num + Copy + Default + Identity,
+{
+    /// # Errors
+    /// * `MatrixOperationError::InvalidDeterminant` is `self.det() == 0`.
+    ///
+    /// # Panics
+    /// * If it fails to create an empty matrix.
+    /// * When tryin
+    pub fn inverse(&self) -> Result<Self, MatrixOperationError> {
+        match M {
+            2 => self.inverse_2x2(),
+            _ => self.inverse_gauss_jordan(),
+        }
+    }
+
+    fn inverse_2x2(&self) -> Result<Self, MatrixOperationError> {
+        let det = self.det();
+        if det.is_zero() {
+            return Err(MatrixOperationError::InvalidDeterminant);
+        }
+
+        let min1 = T::zero() - T::one();
+
+        let mut augmented = Self::empty().unwrap();
+        augmented.data[0] = self.data[3]; // a
+        augmented.data[1] = self.data[1] * min1; // b
+        augmented.data[2] = self.data[2] * min1; // c
+        augmented.data[3] = self.data[0]; // d
+
+        Ok(augmented.mul_scalar(T::one() / det))
+    }
+
+    /// <https://www.mathsisfun.com/algebra/matrix-inverse-row-operations-gauss-jordan.html>
+    /// <https://www.codesansar.com/numerical-methods/python-program-inverse-matrix-using-gauss-jordan.htm>
+    fn inverse_gauss_jordan(&self) -> Result<Self, MatrixOperationError> {
+        todo!();
     }
 }

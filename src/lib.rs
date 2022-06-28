@@ -5,6 +5,8 @@ pub mod errors;
 pub mod identities;
 /// Contains the `Matrix` struct and most associated methods.
 pub mod mat;
+/// Contains the `Position` struct.
+pub mod position;
 mod serialization;
 
 #[macro_use]

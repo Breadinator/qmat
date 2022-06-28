@@ -11,3 +11,9 @@ pub enum NewMatrixError {
     /// If the generics don't match the given arguments
     GenericArgumentMismatch,
 }
+
+#[derive(Debug)]
+pub enum MatrixOperationError {
+    /// If the determinant was invalid for the attempted operation.
+    InvalidDeterminant,
+}
