@@ -2,8 +2,9 @@
 
 use std::{ops::{Add, Index, Sub, Mul, IndexMut}, iter::Sum};
 
+use crate::math::arr_dot;
+
 use super::errors::NewMatrixError;
-use super::math::arr_dot;
 
 /// A matrix of `M` rows and `N` columns. <br/>
 /// `LEN` is the length of the internal array `data: [T; LEN]` that stores all the elements (i.e. `LEN` = `M` * `N`).
@@ -38,9 +39,7 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
 
 impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     /// # Errors
-    /// * `NewMatrixError::` if `rows * cols != data.len()`
     /// * `NewMatrixError::IllegalGenerics` if `M * N != LEN`
-    /// * `NewMatrixError::GenericArgumentMismatch` if `M != rows`, `N != cols`, `LEN != data.len()`
     /// 
     /// # Examples
     /// ```rust
@@ -199,6 +198,23 @@ impl<T: Add+Add<Output = T>+Default+Copy, const M: usize, const N: usize, const 
     }
 }
 
+impl<T: Add+Mul+Sum<<T as Add>::Output>+Copy+Default+Sum<<T as Mul>::Output>, const M: usize> Matrix<T, M, 1, M> {
+    /// # Examples
+    /// ```rust
+    /// use qmat::prelude::*;
+    ///
+    /// let vec1 = Matrix::<i32, 3, 1, 3>::new([2, 4, 3]).unwrap();
+    /// let vec2 = Matrix::<i32, 3, 1, 3>::new([1, 3, 3]).unwrap();
+    /// 
+    /// assert_eq!(vec1.dot(&vec2), 23);
+    /// ```
+    #[must_use]
+    pub fn dot(&self, other: &Self) -> T {
+        //self.data.iter().enumerate().map(|(i, x)| {*x * other.data[i]}).sum()
+        arr_dot(*self.as_flat_array(), *other.as_flat_array())
+    }
+}
+
 impl<T: Sub+Sub<Output = T>+Default+Copy, const M: usize, const N: usize, const LEN: usize> Sub for Matrix<T, M, N, LEN> {
     type Output = Self;
 
@@ -221,23 +237,6 @@ impl<T: Sub+Sub<Output = T>+Default+Copy, const M: usize, const N: usize, const 
             added.data[i] = self.data[i] - rhs.data[i]; 
         }
         added
-    }
-}
-
-impl<T: Add+Mul+Sum<<T as Add>::Output>+Copy+Default+Sum<<T as Mul>::Output>, const M: usize> Matrix<T, M, 1, M> {
-    /// # Examples
-    /// ```rust
-    /// use qmat::prelude::*;
-    ///
-    /// let vec1 = Matrix::<i32, 3, 1, 3>::new([2, 4, 3]).unwrap();
-    /// let vec2 = Matrix::<i32, 3, 1, 3>::new([1, 3, 3]).unwrap();
-    /// 
-    /// assert_eq!(vec1.dot(&vec2), 23);
-    /// ```
-    #[must_use]
-    pub fn dot(&self, other: &Self) -> T {
-        //self.data.iter().enumerate().map(|(i, x)| {*x * other.data[i]}).sum()
-        arr_dot(self.data, other.data)
     }
 }
 
