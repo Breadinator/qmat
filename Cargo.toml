@@ -2,7 +2,7 @@
 name = "qmat"
 authors = ["br3adina7or"]
 description = "A simple library for 2-dimensional matrices."
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 repository = "https://github.com/Breadinator/qmat/"
 homepage = "https://github.com/Breadinator/qmat/"

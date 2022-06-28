@@ -1,6 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum NewMatrixError {
     /// If the given arguments aren't internally consistent (i.e. if `rows*cols!=data.len()`)
     IllegalArguments,
@@ -12,7 +12,7 @@ pub enum NewMatrixError {
     GenericArgumentMismatch,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MatrixOperationError {
     /// If the determinant was invalid for the attempted operation.
     InvalidDeterminant,

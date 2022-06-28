@@ -94,7 +94,7 @@ impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix
     pub fn get_row(&self, row: usize) -> Matrix<T, N, 1, N> {
         let mut output = Matrix::empty().unwrap();
         for i in 0..N {
-            output.data[i] = self.data[row * M + i];
+            output.data[i] = self.data[row * N + i];
         }
         output
     }
@@ -116,7 +116,7 @@ impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix
     #[must_use]
     pub fn get_col(&self, col: usize) -> Matrix<T, M, 1, M> {
         let mut output = Matrix::empty().unwrap();
-        for row in 0..N {
+        for row in 0..M {
             output.data[row] = self[[row, col]];
         }
         output
@@ -322,11 +322,11 @@ impl<
     /// assert_eq!(subbed[[1, 1]], 2);   // 5 - 3
     /// ```
     fn sub(self, rhs: Self) -> Self::Output {
-        let mut added = Self::empty().unwrap();
+        let mut subbed = Self::empty().unwrap();
         for i in 0..LEN {
-            added.data[i] = self.data[i] - rhs.data[i];
+            subbed.data[i] = self.data[i] - rhs.data[i];
         }
-        added
+        subbed
     }
 }
 

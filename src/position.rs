@@ -1,6 +1,6 @@
 #![warn(clippy::all, clippy::pedantic)]
 
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
 #[derive(PartialEq)]
 pub struct Position(pub usize, pub usize);
@@ -43,9 +43,9 @@ impl Position {
     }
 }
 
-impl ToString for Position {
-    fn to_string(&self) -> String {
-        format!("( {}, {} )", self.0, self.1)
+impl Display for Position {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("({}, {})", self.0, self.1))
     }
 }
 impl Debug for Position {
