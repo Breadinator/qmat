@@ -30,6 +30,10 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
         }
         Ok(Matrix { data })
     }
+
+    pub fn as_flat_array(&self) -> &[T; LEN] {
+        &self.data
+    }
 }
 
 impl<T: Default+Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
@@ -234,5 +238,32 @@ impl<T: Add+Mul+Sum<<T as Add>::Output>+Copy+Default+Sum<<T as Mul>::Output>, co
     pub fn dot(&self, other: &Self) -> T {
         //self.data.iter().enumerate().map(|(i, x)| {*x * other.data[i]}).sum()
         arr_dot(self.data, other.data)
+    }
+}
+
+impl<T: Default+Copy, const M: usize, const LEN: usize> Matrix<T, M, M, LEN> {
+    /// Creates a new matrix such that every value in the diagonal from the top left (`[0, 0]`) to the bottom left (`[M, M]`) are equal to `val`.
+    /// 
+    /// # Examples
+    /// ```rust
+    /// use qmat::prelude::Matrix;
+    /// 
+    /// let mat: Matrix<i32, 3, 3, 9> = Matrix::diag(3);
+    /// assert_eq!(mat[[0, 0]], 3);
+    /// assert_eq!(mat[[1, 1]], 3);
+    /// assert_eq!(mat[[2, 2]], 3);
+    /// ```
+    /// 
+    /// # Panics
+    /// * If it fails to create an empty matrix.
+    #[must_use]
+    pub fn diag(val: T) -> Self {
+        let mut mat = Self::empty().unwrap();
+
+        for i in 0..M {
+            mat[[i, i]] = val;
+        }
+
+        mat
     }
 }

@@ -1,6 +1,8 @@
 #![warn(clippy::all, clippy::pedantic)]
 
 pub mod mat;
+mod serialization;
+pub mod identities;
 pub mod errors;
 
 #[macro_use]

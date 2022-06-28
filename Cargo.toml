@@ -2,7 +2,7 @@
 name = "qmat"
 authors = ["br3adina7or"]
 description = "A simple library for 2-dimensional matrices."
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/Breadinator/qmat/"
 homepage = "https://github.com/Breadinator/qmat/"
@@ -12,6 +12,12 @@ readme = "README.md"
 categories = ["data-structures", "mathematics", "science"]
 #keywords = []
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+serde = { version = "1.0.137", features = [ "derive" ]}
+
+[dev-dependencies]
+serde_json = "1.0.81"
+rand = "0.8.5"
+paste = "1.0.7"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
