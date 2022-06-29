@@ -22,6 +22,20 @@ mod matrix {
             assert_eq!(i, *val);
         }
     }
+
+    #[test]
+    fn tokentree_2x3() {
+        let mat = qmat::matrix!([[0, 1, 2], [3, 4, 5]]);
+        assert_eq!(mat.rows(), 2);
+        assert_eq!(mat.cols(), 3);
+        assert_eq!(mat.vol(), 6);
+        assert_eq!(mat[[0, 0]], 0);
+        assert_eq!(mat[[0, 1]], 1);
+        assert_eq!(mat[[0, 2]], 2);
+        assert_eq!(mat[[1, 0]], 3);
+        assert_eq!(mat[[1, 1]], 4);
+        assert_eq!(mat[[1, 2]], 5);
+    }
 }
 
 #[cfg(test)]
@@ -77,4 +91,12 @@ mod identity {
 
     test_identities_up_to_10!(f32, 1.0, 0.0);
     test_identities_up_to_10!(f64, 1.0, 0.0);
+}
+
+#[test]
+fn empty() {
+    let mat = qmat::empty!(4, 3, i8).unwrap();
+    assert_eq!(mat.rows(), 4);
+    assert_eq!(mat.cols(), 3);
+    assert_eq!(*mat.as_flat_array(), [0i8; 12]);
 }

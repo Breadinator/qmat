@@ -60,6 +60,19 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     pub fn vol(&self) -> usize {
         LEN
     }
+
+    pub fn iter(&self) -> Iter<T, M, N, LEN> {
+        Iter {
+            data: &self.data,
+            i: 0,
+        }
+    }
+
+    /// TODO: implement myself.
+    /// Currently just passes the `iter_mut` call to the underlying array.
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
+        self.data.iter_mut()
+    }
 }
 
 impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
@@ -74,6 +87,21 @@ impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix
     /// ```
     pub fn empty() -> Result<Self, NewMatrixError> {
         Self::new([Default::default(); LEN])
+    }
+
+    /// Errors
+    /// * Same as `Matrix::new`
+    #[allow(clippy::missing_errors_doc)]
+    pub fn from_rows(data: [[T; N]; M]) -> Result<Self, NewMatrixError> {
+        let mut flat_data: [T; LEN] = [Default::default(); LEN];
+        let mut i: usize = 0;
+        for row in data {
+            for elem in row {
+                flat_data[i] = elem;
+                i += 1;
+            }
+        }
+        Self::new(flat_data)
     }
 
     /// Gets a specific row of the matrix.
@@ -462,5 +490,58 @@ where
     /// <https://www.codesansar.com/numerical-methods/python-program-inverse-matrix-using-gauss-jordan.htm>
     fn inverse_gauss_jordan(&self) -> Result<Self, MatrixOperationError> {
         todo!();
+    }
+}
+
+impl<T, const M: usize, const N: usize, const LEN: usize> IntoIterator for Matrix<T, M, N, LEN>
+where
+    T: Clone,
+{
+    type IntoIter = IntoIter<T, M, N, LEN>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Self::IntoIter {
+            data: self.data,
+            i: 0,
+        }
+    }
+}
+pub struct IntoIter<T, const M: usize, const N: usize, const LEN: usize> {
+    i: usize,
+    data: [T; LEN],
+}
+impl<T, const M: usize, const N: usize, const LEN: usize> Iterator for IntoIter<T, M, N, LEN>
+where
+    T: Clone,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i >= LEN {
+            None
+        } else {
+            let val = self.data[self.i].clone();
+            self.i += 1;
+            Some(val)
+        }
+    }
+}
+
+pub struct Iter<'a, T, const M: usize, const N: usize, const LEN: usize> {
+    i: usize,
+    data: &'a [T; LEN],
+}
+impl<'a, T, const M: usize, const N: usize, const LEN: usize> Iterator for Iter<'a, T, M, N, LEN> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i >= LEN {
+            None
+        } else {
+            let val = &self.data[self.i];
+            self.i += 1;
+            Some(val)
+        }
     }
 }

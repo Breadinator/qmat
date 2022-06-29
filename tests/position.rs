@@ -1,3 +1,5 @@
+use qmat::position::Position;
+
 #[test]
 fn position_indexing() {
     use qmat::{matrix, position::Position};
@@ -71,4 +73,14 @@ mod moving {
     fn right_n() {
         assert_eq!(POS.right_n(13), Position(3, 16));
     }
+}
+
+#[test]
+fn into_and_from() {
+    let a: [usize; 2] = [12, 4];
+    let b: Position = a.into();
+    assert_eq!(b.0, 12);
+    assert_eq!(b.1, 4);
+    let c: [usize; 2] = b.into();
+    assert_eq!(a, c);
 }

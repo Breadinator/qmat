@@ -53,3 +53,16 @@ impl Debug for Position {
         f.write_str(&format!("Position {{ {}, {} }}", self.0, self.1))
     }
 }
+
+impl From<[usize; 2]> for Position {
+    fn from(pos: [usize; 2]) -> Self {
+        Self(pos[0], pos[1])
+    }
+}
+
+#[allow(clippy::from_over_into)] // it isn't deriving from From
+impl Into<[usize; 2]> for Position {
+    fn into(self) -> [usize; 2] {
+        [self.0, self.1]
+    }
+}
