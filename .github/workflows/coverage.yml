@@ -2,7 +2,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-name: coverage
+name: Coverage
 jobs:
   test:
     runs-on: ubuntu-latest

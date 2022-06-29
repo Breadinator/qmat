@@ -1,5 +1,6 @@
 # qmat
 [![Version](https://img.shields.io/crates/v/qmat)](https://crates.io/crates/qmat)
+[![codecov](https://codecov.io/gh/Breadinator/qmat/branch/main/graph/badge.svg?token=5351LB1WAN)](https://codecov.io/gh/Breadinator/qmat)
 [![Build Status](https://img.shields.io/github/workflow/status/Breadinator/qmat/Rust)](https://github.com/Breadinator/qmat/actions/workflows/rust.yml)
 [![Docs](https://img.shields.io/docsrs/qmat)](https://docs.rs/qmat/latest)
 [![open issues](https://img.shields.io/github/issues-raw/Breadinator/qmat)](https://github.com/Breadinator/qmat/issues)
