@@ -1,11 +1,11 @@
 #![warn(clippy::all, clippy::pedantic)]
 
 pub mod errors;
-/// Contains methods for getting identity matricies and scalars.
+/// Contains methods for getting identity matricies and scalars
 pub mod identities;
-/// Contains the `Matrix` struct and most associated methods.
+/// Contains the `Matrix` struct and most associated methods
 pub mod mat;
-/// Contains the `Position` struct.
+/// Contains the `Position` struct
 pub mod position;
 mod serialization;
 
@@ -19,5 +19,6 @@ pub mod prelude {
     pub use crate::identity;
     pub use crate::mat::Matrix;
     pub use crate::matrix;
+    pub use crate::position::Position;
     pub use crate::vector;
 }

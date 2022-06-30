@@ -2,7 +2,7 @@
 
 use std::fmt::{self, Debug, Display, Formatter};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub struct Position(pub usize, pub usize);
 
 impl Position {

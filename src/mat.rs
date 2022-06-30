@@ -6,10 +6,11 @@ use std::{
 };
 
 use crate::{
-    errors::MatrixOperationError, identities::Identity, math::arr_dot, position::Position,
+    errors::{MatrixOperationError, NewMatrixError},
+    identities::Identity,
+    math::arr_dot,
+    position::Position,
 };
-
-use super::errors::NewMatrixError;
 
 /// A matrix of `M` rows and `N` columns. <br/>
 /// `LEN` is the length of the internal array `data: [T; LEN]` that stores all the elements (i.e. `LEN` = `M` * `N`).
@@ -37,30 +38,39 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
         Ok(Matrix { data })
     }
 
+    /// Returns an immutable reference to the underlying 1-dimensional data.
+    ///
+    /// Flattened such that the matrix <br/>
+    /// &nbsp;&nbsp;&nbsp;&nbsp;`[a, b, c]` <br/>
+    /// &nbsp;&nbsp;&nbsp;&nbsp;`[d, e, f]`<br/>
+    /// becomes `[a, b, c, d, e, f]`.
     #[must_use]
     pub fn as_flat_array(&self) -> &[T; LEN] {
         &self.data
     }
 
+    /// Returns the constant number of rows, `M`.
     #[must_use]
     #[allow(clippy::unused_self)] // so you can call someMatrix.rows()
     pub fn rows(&self) -> usize {
         M
     }
 
+    /// Returns the constant number of columns, `N`.
     #[must_use]
     #[allow(clippy::unused_self)] // so you can call someMatrix.cols()
     pub fn cols(&self) -> usize {
         N
     }
 
-    /// The number of elements in the matrix (i.e. the number of rows times the number of cols)
+    /// The number of elements in the matrix (i.e. the number of rows times the number of cols).
     #[must_use]
     #[allow(clippy::unused_self)] // so you can call someMatrix.vol()
     pub fn vol(&self) -> usize {
         LEN
     }
 
+    /// Iterates over immutable references to all of the elements of a matrix.
     pub fn iter(&self) -> Iter<T, M, N, LEN> {
         Iter {
             data: &self.data,
@@ -72,6 +82,52 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     /// Currently just passes the `iter_mut` call to the underlying array.
     pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, T> {
         self.data.iter_mut()
+    }
+
+    /// Creates an iterator for the matrix's rows by moving matrix ownership.
+    pub fn into_iter_row(self) -> IntoIterRow<T, M, N, LEN> {
+        IntoIterRow {
+            i: 0,
+            data: self.data,
+        }
+    }
+
+    /// Iterates over rows, using immutable references to the original array's data.
+    pub fn iter_row(&self) -> IterRow<'_, T, M, N, LEN> {
+        IterRow {
+            i: 0,
+            data: &self.data,
+        }
+    }
+
+    /// Unimplemented method.
+    /// Iterates over rows, using mutable references to the original array's data.
+    #[allow(clippy::unused_self)]
+    pub fn iter_row_mut(&mut self) {
+        unimplemented!();
+    }
+
+    /// Creates an iterator for the matrix's columns by moving matrix ownership.
+    pub fn into_iter_col(self) -> IntoIterCol<T, M, N, LEN> {
+        IntoIterCol {
+            i: 0,
+            data: self.data,
+        }
+    }
+
+    /// Iterates over columns, using immutable references to the original array's data.
+    pub fn iter_col(&self) -> IterCol<'_, T, M, N, LEN> {
+        IterCol {
+            i: 0,
+            data: &self.data,
+        }
+    }
+
+    /// Iterates over columns, using mutable references to the original array's data.
+    /// Unimplemented method.
+    #[allow(clippy::unused_self)]
+    pub fn iter_col_mut(&mut self) {
+        unimplemented!();
     }
 }
 
@@ -152,12 +208,7 @@ impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix
 }
 
 impl<
-        T: Default
-            + Copy
-            + Mul
-            + Add
-            + std::iter::Sum<<T as std::ops::Mul>::Output>
-            + std::iter::Sum<<T as std::ops::Add>::Output>,
+        T: Default + Copy + Mul + Add + Sum<<T as Mul>::Output> + Sum<<T as Add>::Output>,
         const M: usize,
         const N: usize,
         const LEN: usize,
@@ -204,6 +255,19 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN>
 where
     T: Default + Copy + Mul<Output = T>,
 {
+    /// Multiplies a matrix with and scalar value.
+    /// Iterates over all elements in the matrix and multiplies it by the given scalar.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use qmat::prelude::*;
+    /// let mat = matrix!{[[0, 1, 2]]};
+    /// let res = mat.mul_scalar(3);
+    /// assert_eq!(res[[0, 0]], 0);
+    /// assert_eq!(res[[0, 1]], 3);
+    /// assert_eq!(res[[0, 2]], 6);
+    /// ```
+    ///
     /// # Panics
     /// * When it fails to make an empty matrix.
     #[must_use]
@@ -282,12 +346,14 @@ impl<
 {
     type Output = Self;
 
+    /// Returns a matrix where element `i` is `lhs[i] + rhs[i]`.
+    ///
     /// # Examples
     /// ```rust
     /// use qmat::prelude::*;
     ///
-    /// let lhs = Matrix::<i32, 2, 2, 4>::new([3, 17, 128, 5]).unwrap();
-    /// let rhs = Matrix::<i32, 2, 2, 4>::new([63, 12, 4, 3]).unwrap();
+    /// let lhs = matrix!([[3, 17], [128, 5]]);
+    /// let rhs = matrix!([[63, 12], [4, 3]]);
     /// let added = lhs + rhs;
     ///
     /// assert_eq!(added[[0, 0]], 66); // 3 + 63
@@ -340,8 +406,8 @@ impl<
     /// ```rust
     /// use qmat::prelude::*;
     ///
-    /// let lhs = Matrix::<i32, 2, 2, 4>::new([3, 17, 128, 5]).unwrap();
-    /// let rhs = Matrix::<i32, 2, 2, 4>::new([63, 12, 4, 3]).unwrap();
+    /// let lhs = matrix!([[3, 17], [128, 5]]);
+    /// let rhs = matrix!([[63, 12], [4, 3]]);
     /// let subbed = lhs - rhs;
     ///
     /// assert_eq!(subbed[[0, 0]], -60);  // 3 - 63
@@ -389,6 +455,7 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN>
 where
     T: num_traits::Num + Copy,
 {
+    /// Returns the [determinant](https://en.wikipedia.org/wiki/Determinant) of a matrix.
     #[must_use]
     pub fn det(&self) -> T {
         let mat = self;
@@ -461,7 +528,7 @@ where
     ///
     /// # Panics
     /// * If it fails to create an empty matrix.
-    /// * When tryin
+    /// * When trying to get the inverse of a matrix that isn't 2x2. (Currently unimplemented.)
     pub fn inverse(&self) -> Result<Self, MatrixOperationError> {
         match M {
             2 => self.inverse_2x2(),
@@ -507,6 +574,8 @@ where
         }
     }
 }
+
+#[derive(Debug)]
 pub struct IntoIter<T, const M: usize, const N: usize, const LEN: usize> {
     i: usize,
     data: [T; LEN],
@@ -528,6 +597,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct Iter<'a, T, const M: usize, const N: usize, const LEN: usize> {
     i: usize,
     data: &'a [T; LEN],
@@ -542,6 +612,131 @@ impl<'a, T, const M: usize, const N: usize, const LEN: usize> Iterator for Iter<
             let val = &self.data[self.i];
             self.i += 1;
             Some(val)
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct IntoIterRow<T, const M: usize, const N: usize, const LEN: usize> {
+    i: usize,
+    data: [T; LEN],
+}
+impl<'a, T, const M: usize, const N: usize, const LEN: usize> Iterator for IntoIterRow<T, M, N, LEN>
+where
+    T: Copy + Default,
+{
+    type Item = Matrix<T, M, 1, M>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i >= N {
+            return None;
+        }
+
+        let offset = self.i * M;
+        let mut row: [T; M] = [Default::default(); M];
+
+        for (j, elem) in row.iter_mut().enumerate() {
+            *elem = self.data[offset + j];
+        }
+
+        self.i += 1;
+
+        if let Ok(mat) = Matrix::<T, M, 1, M>::new(row) {
+            Some(mat)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct IterRow<'a, T, const M: usize, const N: usize, const LEN: usize> {
+    i: usize,
+    data: &'a [T; LEN],
+}
+impl<'a, T, const M: usize, const N: usize, const LEN: usize> Iterator for IterRow<'a, T, M, N, LEN>
+where
+    T: 'a,
+{
+    type Item = Matrix<&'a T, M, 1, M>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i >= N {
+            return None;
+        }
+
+        let offset = self.i * M;
+        let mut row: [&'a T; M] = [&self.data[offset]; M];
+
+        for (j, elem) in row.iter_mut().enumerate() {
+            *elem = &self.data[offset + j];
+        }
+
+        self.i += 1;
+
+        if let Ok(mat) = Matrix::<&T, M, 1, M>::new(row) {
+            Some(mat)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct IntoIterCol<T, const M: usize, const N: usize, const LEN: usize> {
+    i: usize,
+    data: [T; LEN],
+}
+impl<T, const M: usize, const N: usize, const LEN: usize> Iterator for IntoIterCol<T, M, N, LEN>
+where
+    T: Copy + Default,
+{
+    type Item = Matrix<T, 1, N, N>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i >= M {
+            return None;
+        }
+
+        let mut col: [T; N] = [Default::default(); N];
+
+        for (j, elem) in col.iter_mut().enumerate() {
+            *elem = self.data[M * j + self.i];
+        }
+
+        self.i += 1;
+
+        if let Ok(mat) = Matrix::<T, 1, N, N>::new(col) {
+            Some(mat)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct IterCol<'a, T, const M: usize, const N: usize, const LEN: usize> {
+    i: usize,
+    data: &'a [T; LEN],
+}
+impl<'a, T, const M: usize, const N: usize, const LEN: usize> Iterator for IterCol<'a, T, M, N, LEN>
+where
+    T: 'a,
+{
+    type Item = Matrix<&'a T, 1, N, N>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.i >= N {
+            return None;
+        }
+
+        let mut col: [&'a T; N] = [&self.data[M + self.i]; N];
+        for (j, elem) in col.iter_mut().enumerate() {
+            *elem = &self.data[M * j + self.i];
+        }
+
+        self.i += 1;
+
+        if let Ok(mat) = Matrix::<&T, 1, N, N>::new(col) {
+            Some(mat)
+        } else {
+            None
         }
     }
 }
