@@ -131,7 +131,10 @@ impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
     }
 }
 
-impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN> {
+impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN>
+where
+    T: Default + Copy,
+{
     /// # Errors
     /// * `NewMatrixError::IllegalGenerics` if `M * N != LEN`
     ///
@@ -147,7 +150,7 @@ impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix
 
     /// Errors
     /// * Same as `Matrix::new`
-    #[allow(clippy::missing_errors_doc)]
+    #[allow(clippy::missing_errors_doc)] // idk why clippy can't read
     pub fn from_rows(data: [[T; N]; M]) -> Result<Self, NewMatrixError> {
         let mut flat_data: [T; LEN] = [Default::default(); LEN];
         let mut i: usize = 0;
@@ -207,12 +210,9 @@ impl<T: Default + Copy, const M: usize, const N: usize, const LEN: usize> Matrix
     }
 }
 
-impl<
-        T: Default + Copy + Mul + Add + Sum<<T as Mul>::Output> + Sum<<T as Add>::Output>,
-        const M: usize,
-        const N: usize,
-        const LEN: usize,
-    > Matrix<T, M, N, LEN>
+impl<T, const M: usize, const N: usize, const LEN: usize> Matrix<T, M, N, LEN>
+where
+    T: Default + Copy + Mul + Sum<<T as Mul>::Output>,
 {
     /// Turbofish `::<O, Q, RES_LEN>` where
     /// * `O` is the number of columns in the other matrix,
@@ -337,12 +337,9 @@ impl<T, const M: usize, const N: usize, const LEN: usize> IndexMut<[usize; 2]>
     }
 }
 
-impl<
-        T: Add + Add<Output = T> + Default + Copy,
-        const M: usize,
-        const N: usize,
-        const LEN: usize,
-    > Add for Matrix<T, M, N, LEN>
+impl<T, const M: usize, const N: usize, const LEN: usize> Add for Matrix<T, M, N, LEN>
+where
+    T: Add<Output = T> + Default + Copy,
 {
     type Output = Self;
 
@@ -372,10 +369,9 @@ impl<
     }
 }
 
-impl<
-        T: Add + Mul + Sum<<T as Add>::Output> + Copy + Default + Sum<<T as Mul>::Output>,
-        const M: usize,
-    > Matrix<T, M, 1, M>
+impl<T, const M: usize> Matrix<T, M, 1, M>
+where
+    T: Copy + Mul + Sum<<T as Mul>::Output>,
 {
     /// # Examples
     /// ```rust
@@ -393,12 +389,9 @@ impl<
     }
 }
 
-impl<
-        T: Sub + Sub<Output = T> + Default + Copy,
-        const M: usize,
-        const N: usize,
-        const LEN: usize,
-    > Sub for Matrix<T, M, N, LEN>
+impl<T, const M: usize, const N: usize, const LEN: usize> Sub for Matrix<T, M, N, LEN>
+where
+    T: Sub<Output = T> + Default + Copy,
 {
     type Output = Self;
 
@@ -424,7 +417,10 @@ impl<
     }
 }
 
-impl<T: Default + Copy, const M: usize, const LEN: usize> Matrix<T, M, M, LEN> {
+impl<T, const M: usize, const LEN: usize> Matrix<T, M, M, LEN>
+where
+    T: Default + Copy,
+{
     /// Creates a new matrix such that every value in the diagonal from the top left (`[0, 0]`) to the bottom left (`[M, M]`) are equal to `val`.
     ///
     /// # Examples
@@ -621,7 +617,7 @@ pub struct IntoIterRow<T, const M: usize, const N: usize, const LEN: usize> {
     i: usize,
     data: [T; LEN],
 }
-impl<'a, T, const M: usize, const N: usize, const LEN: usize> Iterator for IntoIterRow<T, M, N, LEN>
+impl<T, const M: usize, const N: usize, const LEN: usize> Iterator for IntoIterRow<T, M, N, LEN>
 where
     T: Copy + Default,
 {
